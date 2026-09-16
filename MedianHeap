@@ -1,0 +1,98 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define ll long long 
+const ll N =200005;
+
+struct Point{
+    ll a,cost;
+    ll type=0;
+    ll big,middle,small;
+}segtree[4*N];
+
+struct node
+{
+    ll id,m;
+}query[N];
+
+bool cmp(node a,node b)
+{
+    return a.m<b.m;
+}
+pair<ll,ll> answer[N];
+
+ll result[N];
+
+ll n;
+void update(ll id)
+{
+    ll Left=id*2,Right=id*2+1;
+    ll small=segtree[id].cost*(segtree[id].type!=0);
+    ll middle=segtree[id].cost*(segtree[id].type!=1);
+    ll big=segtree[id].cost*(segtree[id].type!=2);
+    if(id*2+1<=n){
+        segtree[id].small=small+segtree[Left].small+segtree[Right].small-max(small,max(segtree[Left].small,segtree[Right].small));
+        segtree[id].middle=
+        min(segtree[Left].small+middle+segtree[Right].big,
+        min(segtree[Left].small+big+segtree[Right].middle,
+        min(segtree[Left].middle+small+segtree[Right].big,
+        min(segtree[Left].middle+big+segtree[Right].small,
+        min(segtree[Left].big+small+segtree[Right].middle,
+            segtree[Left].big+middle+segtree[Right].small)))));
+        segtree[id].middle=min(segtree[id].middle,middle+segtree[Left].middle+segtree[Right].middle-max(middle,max(segtree[Left].middle,segtree[Right].middle)));
+        segtree[id].big=big+segtree[Left].big+segtree[Right].big-max(big,max(segtree[Left].big,segtree[Right].big));
+    }
+    else{
+        segtree[id].small=small;
+        segtree[id].middle=middle;
+        segtree[id].big=big;
+    }
+}
+void buildtree(){
+    for(ll i=n;i;--i){
+        update(i);
+    }
+}
+void change_value(ll u,ll type){
+    segtree[u].type=type;
+    while(u){
+        update(u);
+        u>>=1;
+    }
+}
+int main(){
+    cin>>n;
+    for(ll i=1;i<=n;i++)
+	{
+        cin>>segtree[i].a>>segtree[i].cost;
+        answer[i]=pair<ll,ll> (segtree[i].a,i);
+        segtree[i].type=2;
+    }
+    answer[n+1]={1e15,0};
+    sort(answer+1,answer+n+1);
+
+    ll q;
+    cin>>q;
+    for(ll i=1;i<=q;++i){
+        cin>>query[i].m;
+        query[i].id=i;
+    }
+    buildtree();
+    sort(query+1,query+q+1,cmp);
+    ll index1=0,index2=0;
+    for(ll i=1;i<=q;++i){
+        ll aim=query[i].m;
+        while(answer[index2+1].first<=aim){
+            index2++;
+            change_value(answer[index2].second,1);
+        }
+        while(answer[index1+1].first<aim){
+            index1++;
+            change_value(answer[index1].second,0);
+        }
+        result[query[i].id]=segtree[1].middle;
+    }
+    for(ll i=1;i<=q;++i)
+	{
+        cout<<result[i]<<endl;
+    }
+}
