@@ -1,0 +1,65 @@
+#include<bits/stdc++.h>
+using namespace std;
+int n,m,a,b,c;
+long long h[200005],pre[200005],label[200005],dis[200005],inDegree[200005];
+struct node
+{
+    long long to,l;
+};
+vector<node> d[200005];
+
+int main() {
+    cin>>n>>m;
+    for (int i=1;i<=m;i++)
+    {
+        cin>>a>>b>>c;
+        d[b].push_back({a,c});
+        inDegree[a]++;
+    }
+    queue<int> q;
+    int cnt=0;
+    for (int i=1;i<=n;i++)
+    {
+        if (inDegree[i]==0)
+            q.push(i);
+    }
+    while (q.size()>0)
+    {
+        int t=q.front();
+        q.pop();
+        for (node i:d[t])
+        {
+            if (h[t]+1>h[i.to])
+            {
+                h[i.to]=h[t]+1;
+                dis[i.to]=dis[t]+i.l;
+                pre[i.to]=t;
+                label[i.to]=i.l;
+            }
+            else if (h[t]+1==h[i.to])
+            {
+                if (i.l<label[i.to])
+                {
+                    dis[i.to]=dis[t]+i.l;
+                    pre[i.to]=t;
+                    label[i.to]=i.l;
+                }
+                else if (i.l==label[i.to] && label[t]<label[pre[i.to]])
+                {
+                    dis[i.to]=dis[t]+i.l;
+                    pre[i.to]=t;
+                    label[i.to]=i.l;
+                }
+            }
+            inDegree[i.to]--;
+            if (inDegree[i.to]==0)
+                q.push(i.to);
+        }
+    }
+    for (int i=1;i<=n;i++) {
+        cout<<h[i]<<" "<<dis[i]<<endl;
+    }
+
+
+    return 0;
+}
